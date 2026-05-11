@@ -1,0 +1,6 @@
+# Everything by default; `files` in package.json is the allowlist
+# This file exists only to suppress files that slip past `files`
+*
+!dist/**
+!README.md
+!LICENSE
