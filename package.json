@@ -1,6 +1,6 @@
 {
   "name": "@mellonis/typograf-artlebedev",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "TypeScript wrapper for ArtLebedev's Typograf SOAP service (Russian typography polish).",
   "keywords": ["typograf", "artlebedev", "typography", "russian", "soap", "smart-quotes", "nbsp"],
   "homepage": "https://github.com/mellonis/typograf-artlebedev#readme",
