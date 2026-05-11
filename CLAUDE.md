@@ -6,14 +6,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 `@mellonis/typograf-artlebedev` — a thin TypeScript wrapper around ArtLebedev's Typograf SOAP service for Russian-language typography polish (smart quotes `«…»`, em/en dashes, NBSPs glued around short words). Single public function `typograf(input, options?)`. Zero runtime dependencies. Node 22.5+ only (uses `AbortSignal.any`). Dual ESM+CJS build via `tsup`.
 
-## Spec and plan live outside this repo
+## Spec and plan
 
-The design spec and implementation plan are tracked in the sibling `poetry` umbrella repo, not here:
+The design spec and the v1.0.0 implementation plan live in this repo:
 
-- Spec: `../poetry/docs/superpowers/specs/2026-05-11-typograf-artlebedev-design.md`
-- Plan: `../poetry/docs/superpowers/plans/2026-05-11-typograf-artlebedev.md`
+- Spec: [`docs/superpowers/specs/2026-05-11-typograf-artlebedev-design.md`](docs/superpowers/specs/2026-05-11-typograf-artlebedev-design.md)
+- Plan: [`docs/superpowers/plans/2026-05-11-typograf-artlebedev.md`](docs/superpowers/plans/2026-05-11-typograf-artlebedev.md)
 
-Tracking issue is [`mellonis/poetry#12`](https://github.com/mellonis/poetry/issues/12); first consumer is [`mellonis/poetry-nextjs#114`](https://github.com/mellonis/poetry-nextjs/issues/114). If a future task references "the plan" or "the spec," that is where they live until v1.0.0 ships.
+Tracking issue (closed) was [`mellonis/poetry#12`](https://github.com/mellonis/poetry/issues/12); first consumer was [`mellonis/poetry-nextjs#114`](https://github.com/mellonis/poetry-nextjs/issues/114). The plan is historical — checked in for context on early architectural choices — and is not maintained against the current code.
 
 ## Commands
 
