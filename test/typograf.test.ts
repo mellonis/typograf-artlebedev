@@ -45,3 +45,36 @@ describe('typograf — success', () => {
     });
   });
 });
+
+describe('typograf — errors', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('returns service_error on HTTP non-2xx', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValueOnce(new Response('Internal Server Error', { status: 500 })),
+    );
+    const result = await typograf('x');
+    expect(result).toEqual({ error: 'service_error', detail: 'HTTP 500' });
+  });
+
+  it('returns service_error when response body lacks <ProcessTextResult>', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValueOnce(new Response('<garbage/>', { status: 200 })),
+    );
+    const result = await typograf('x');
+    expect(result).toEqual({ error: 'service_error', detail: 'malformed SOAP response' });
+  });
+
+  it('returns network_error when fetch rejects', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockRejectedValueOnce(new Error('ECONNREFUSED')),
+    );
+    const result = await typograf('x');
+    expect(result).toMatchObject({ error: 'network_error', detail: expect.stringContaining('ECONNREFUSED') });
+  });
+});

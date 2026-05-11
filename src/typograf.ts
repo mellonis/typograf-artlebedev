@@ -11,15 +11,26 @@ export async function typograf(
   const maxNobr = opts.maxNobr ?? 3;
   const endpoint = opts.endpoint ?? DEFAULT_ENDPOINT;
 
-  const res = await fetch(endpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'text/xml; charset=utf-8',
-      SOAPAction: `"${SOAPACTION}"`,
-    },
-    body: buildEnvelope(input, entityType, useBr, useP, maxNobr),
-  });
+  let res: Response;
+  try {
+    res = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'text/xml; charset=utf-8',
+        SOAPAction: `"${SOAPACTION}"`,
+      },
+      body: buildEnvelope(input, entityType, useBr, useP, maxNobr),
+    });
+  } catch (e: unknown) {
+    return {
+      error: 'network_error',
+      detail: e instanceof Error ? e.message : String(e),
+    };
+  }
 
+  if (!res.ok) {
+    return { error: 'service_error', detail: `HTTP ${res.status}` };
+  }
   const body = await res.text();
   const output = extractResult(body);
   if (output === null) {
