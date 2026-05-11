@@ -78,3 +78,82 @@ describe('typograf — errors', () => {
     expect(result).toMatchObject({ error: 'network_error', detail: expect.stringContaining('ECONNREFUSED') });
   });
 });
+
+describe('typograf — timeout and abort', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+  });
+
+  function stubFetchThatHonorsAbort(): void {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockImplementation(
+        (_url: string, init: { signal?: AbortSignal }) =>
+          new Promise<Response>((_resolve, reject) => {
+            init.signal?.addEventListener('abort', () => {
+              const err = new Error('aborted') as Error & { name: string };
+              err.name = 'AbortError';
+              reject(err);
+            });
+          }),
+      ),
+    );
+  }
+
+  it('returns timeout when the internal timer fires before fetch resolves', async () => {
+    vi.useFakeTimers();
+    stubFetchThatHonorsAbort();
+
+    const resultPromise = typograf('x', { timeoutMs: 100 });
+    await vi.advanceTimersByTimeAsync(150);
+    const result = await resultPromise;
+    expect(result).toEqual({ error: 'timeout' });
+  });
+
+  it('returns aborted when the caller signal fires', async () => {
+    stubFetchThatHonorsAbort();
+    const ctrl = new AbortController();
+    const resultPromise = typograf('x', { signal: ctrl.signal });
+    queueMicrotask(() => ctrl.abort());
+    const result = await resultPromise;
+    expect(result).toEqual({ error: 'aborted' });
+  });
+});
+
+describe('typograf — input handling', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('short-circuits on empty input without calling fetch', async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    const result = await typograf('');
+    expect(result).toEqual({ output: '' });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
+describe('typograf — entity type mapping', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it.each([
+    ['named', 1],
+    ['numeric', 2],
+    ['none', 3],
+  ] as const)('maps entityType=%s to SOAP integer %s', async (et, expected) => {
+    const fetchMock = vi.fn().mockResolvedValueOnce(
+      new Response(
+        `<?xml version="1.0" encoding="utf-8"?><soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body><ProcessTextResponse xmlns="http://typograf.artlebedev.ru/webservices/"><ProcessTextResult>x</ProcessTextResult></ProcessTextResponse></soap:Body></soap:Envelope>`,
+        { status: 200 },
+      ),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+    await typograf('x', { entityType: et });
+    const body = fetchMock.mock.calls[0]![1].body as string;
+    expect(body).toContain(`<entityType>${expected}</entityType>`);
+  });
+});
